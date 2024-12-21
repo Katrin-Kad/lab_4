@@ -1,0 +1,36 @@
+name: Vault CI/CD Example
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Get Secret from Vault
+      env:
+        VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+        VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      run: |
+        echo "Fetching secret from Vault..."
+        SECRET=$(curl --silent --header "X-Vault-Token: $VAULT_TOKEN" \
+          --request GET "$VAULT_ADDR/v1/secret/data/my-secret" | jq -r '.data.data.secret_key')
+        echo "Secret fetched successfully!"
+
+        if [ -z "$SECRET" ]; then
+          echo "Failed to fetch secret!"
+          exit 1
+        fi
+
+        echo "SECRET=$SECRET" >> $GITHUB_ENV
+
+    - name: Use Secret
+      run: echo "Using secret: $SECRET is a secret!"
+      env:
+        SECRET: ${{ env.SECRET }}
