@@ -31,6 +31,8 @@ jobs:
         echo "SECRET=$SECRET" >> $GITHUB_ENV
 
     - name: Use Secret
-      run: echo "Using secret: $SECRET is a secret!"
       env:
         SECRET: ${{ env.SECRET }}
+      run: |
+        echo "Using secret safely..."
+        echo "The secret is: $SECRET"
